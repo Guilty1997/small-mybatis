@@ -7,5 +7,7 @@ package small.mybatis.building.test.dao;
  */
 public interface IUserDao {
 
-    String queryUser(String name);
+    String queryUserName(String uId);
+
+    Integer queryUserAge(String uId);
 }

@@ -4,7 +4,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import small.mybatis.building.MapperProxyFactory;
+import small.mybatis.building.MapperRegistry;
 import small.mybatis.building.test.dao.IUserDao;
+import small.mybatis.session.SqlSession;
+import small.mybatis.session.defaults.DefaultSqlSessionFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
@@ -22,26 +25,20 @@ public class ApiTest {
 
 
     @Test
-    public void testMapperProxyFactory() {
-        MapperProxyFactory<IUserDao> factory = new MapperProxyFactory<>(IUserDao.class);
-        Map<String, String> sqlSession = new HashMap<>();
-        sqlSession.put("small.mybatis.building.test.dao.IUserDao.queryUser", "查询Sql语句执行");
-        IUserDao userDao = factory.newInstance(sqlSession);
-        String s = userDao.queryUser("1");
-        logger.info(s);
+    public void test_MapperProxyFactory() {
+        //生成mapperRegistry
+        MapperRegistry mapperRegistry = new MapperRegistry();
+        mapperRegistry.addMappers("small.mybatis.building.test.dao");
 
-    }
+        //获取sqlSession工厂
+        DefaultSqlSessionFactory defaultSqlSessionFactory = new DefaultSqlSessionFactory(mapperRegistry);
+        SqlSession sqlSession = defaultSqlSessionFactory.openSession();
 
-    @Test
-    public void testProxy() {
-        IUserDao userDao = (IUserDao) Proxy.newProxyInstance(
-                Thread.currentThread().getContextClassLoader(),
-                new Class[]{IUserDao.class},
-                (proxy, method, args) -> "你被代理了"
-        );
+        //生成对象
+        IUserDao userDao = sqlSession.getMapper(IUserDao.class);
+        String userName = userDao.queryUserName("111");
 
-        String s = userDao.queryUser("1");
-        logger.info(s);
+        logger.info("userName:{}", userName);
 
     }
 
